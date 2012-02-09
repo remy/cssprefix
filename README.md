@@ -1,6 +1,6 @@
 # CSS Prefix
 
-Just a precusor to this readme: this is just an idea. There are already other tools available, my plan is to add to those tools to help developers.
+Just a precursor to this readme: this is just an idea. There are already other tools available, my plan is to add to those tools to help developers.
 
 If this is a daft idea or doesn't have legs, say so. If there's better ways of doing something: say so.
 
@@ -36,7 +36,7 @@ Or if fails:
 { pass: false, detail: [ /* here be properties that fail */ ]}
 ```
 
-Extension could then show a bleemin' great RED FAIL icon, or happy face green unicorn riding a tickmark (or something).
+Extension could then show a bleemin' great RED FAIL icon, or happy face green unicorn riding a tick mark (or something).
 
 # Tasks
 
@@ -49,7 +49,7 @@ Extension could then show a bleemin' great RED FAIL icon, or happy face green un
 
 # Tool integration
 
-Ideas how to get this baked in to developer's workflow:
+Ideas how to get this baked in to developer's work flow:
 
 1. TextMate commands
 2. Other editor commands (I'm not a TextMate user - I know, weird, right!?)
@@ -60,3 +60,13 @@ Ideas how to get this baked in to developer's workflow:
 
 Server side is in Node, using Express to get up and running quickly. It also means that I can pull in the CSS parsers without having to do (too much) conversion.
 
+# Collaboration
+
+I'm looking for help in the following areas:
+
+- UX for web site
+- Design for web site
+- CSS, HTML & JavaScript for web site
+- Testing (once the server is complete)
+- Third party tools (extensions, proof of ideas)
+- Support on server-side JS (though I'll get as far as possibly in as short amount of time as possible first though)
