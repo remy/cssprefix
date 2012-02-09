@@ -1,5 +1,11 @@
 # CSS Prefix
 
+Just a precusor to this readme: this is just an idea. There are already other tools available, my plan is to add to those tools to help developers.
+
+If this is a daft idea or doesn't have legs, say so. If there's better ways of doing something: say so.
+
+# The Plan
+
 Plan to build a service for developer to submit a site to that will:
 
 1. Plug in the missing CSS vendor prefixes
@@ -38,6 +44,7 @@ Extension could then show a bleemin' great RED FAIL icon, or happy face green un
 - Parse HTML, CSS, @imports, etc to find all CSS embedded in document (note: [I've done this before](https://github.com/remy/inliner))
 - Parse CSS to process properties used (either's Zakas' [CSS lint]() parser or  [Lea Verou's -prefix-free](http://leaverou.github.com/prefixfree/) might have this already)
 - Have a converter library to go from CSS property to all fallbacks required. *Question* maybe this could also use a minimum browser support flag - such as supporting IE8 would require filters for opacity...maybe not worth it?
+- Site design - something clear, simple and to the point.
 
 
 # Tool integration
@@ -49,5 +56,7 @@ Ideas how to get this baked in to developer's workflow:
 3. Browser extensions (as mentioned above)
 4. Others?
 
+# Technology:
 
+Server side is in Node, using Express to get up and running quickly. It also means that I can pull in the CSS parsers without having to do (too much) conversion.
 
