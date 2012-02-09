@@ -45,6 +45,7 @@ Extension could then show a bleemin' great RED FAIL icon, or happy face green un
 - Parse CSS to process properties used (either's Zakas' [CSS lint]() parser or <del>[Lea Verou's -prefix-free](http://leaverou.github.com/prefixfree/) might have this already</del> (no go on Lea's code - spoke to her, and it doesn't include a parser))
 - Have a converter library to go from CSS property to all fallbacks required. *Question* maybe this could also use a minimum browser support flag - such as supporting IE8 would require filters for opacity...maybe not worth it?
 - Site design - something clear, simple and to the point.
+- Not sure about this - but what about a wall of shame???!
 
 
 # Tool integration
