@@ -4,6 +4,15 @@ Just a precursor to this readme: this is just an idea. There are already other t
 
 If this is a daft idea or doesn't have legs, say so. If there's better ways of doing something: say so.
 
+# Status
+
+Fork the project, and run:
+
+    npm install
+    node prefix.js [url]
+
+This *should* output the CSS with retrofitted vendor-prefixes where they were missing. This was about 3 hours work, so if it's shoddy - I do appologise!
+
 # The Plan
 
 Plan to build a service for developer to submit a site to that will:
