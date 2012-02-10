@@ -31,7 +31,7 @@ This would return a simple page - with an indicator of whether they're not using
 
 Also available for plugins to use - with the intention that a developer can use a simple plugin (for firebug, chrome extension, etc):
 
-> http://cssprefix.com/check.json?http://remysharp.com
+> http://cssprefix.com/check.json?url=http://remysharp.com
 
 Returns:
 
