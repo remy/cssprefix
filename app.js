@@ -62,7 +62,7 @@ app.get('/check.json', function (req, res) {
   prefix.on('message', function(event) {
     console.log(event);
     if (event.type == 'dirty') {
-      res.send({ pass: false });
+      res.send({ pass: false, lint: event.lint });
     } else if (event.type == 'end') {
       res.send({ pass: true });
     }

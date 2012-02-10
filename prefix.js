@@ -132,7 +132,7 @@ Prefix.prototype.parseHTML = function (html, url) {
               // this tells the parent process to show a fail or success whilst we continue with the processing
               self.dirty = true;
               
-              process.send({ type: 'dirty' });
+              process.send({ type: 'dirty', lint: message });
               if (self.dirtyExit) {
                 process.exit();
               }
