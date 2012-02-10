@@ -1,0 +1,12 @@
+{
+  "name": "cssprefix",
+  "version": "0.0.1",
+  "dependencies": {
+    "connect": ">= 0.0.1",
+    "request": ">= 0.0.1",
+    "csslint": ">= 0.0.1",
+    "jsdom": ">= 0.0.1",
+    "express": "2.5.5",
+    "jade": ">= 0.0.1"
+  }
+}
