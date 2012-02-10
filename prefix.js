@@ -44,7 +44,7 @@ Prefix.prototype.dirty = false;
 Prefix.prototype.end = function () {
   var self = this;
 
-  var child = exec('zip ' + __dirname + '/public/jobs/' + self.job + '.zip *.css', { cwd: self.dir }, function (error, stdout, stderr) {
+  var child = exec('zip ' + __dirname + '/public/jobs/' + self.job + '.zip *.*', { cwd: self.dir }, function (error, stdout, stderr) {
     if (error !== null) {
       console.log('exec error: ' + error);
     }
@@ -317,7 +317,7 @@ function retrofit(css, lint) {
 }
 
 function urlAsPath(url) {
-  return url.toLowerCase().replace(/.*?:\/\//, '').replace(/\//g, '_');
+  return url.toLowerCase().replace(/.*?:\/\//, '').replace(/\?/, '-').replace(/\//g, '_');
 }
 
 

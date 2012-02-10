@@ -22,6 +22,9 @@ path.exists(__dirname + '/public/jobs', function (exists) {
   }
 });
 
+function urlAsPath(url) {
+  return url.toLowerCase().replace(/.*?:\/\//, '').replace(/\//g, '_');
+}
 
 var app = module.exports = express.createServer();
 
@@ -71,20 +74,30 @@ app.get('/check.json', function (req, res) {
   prefix.send({ type: 'start', url: req.query.url, dirtyExit: true });
 });
 
-app.get(/\/(.*)?/, function (req, res) {
-  console.log(req.headers);
-  var prefix = cp.fork(__dirname + '/prefix.js');
+app.get(/\/check\/(.*)?/, function (req, res) {
+  var job = urlAsPath(req.params[0]);
+  path.exists(__dirname + '/public/jobs/' + job + '.zip', function (exists) {
+    var ready = function () {
+      res.send('<a href="/jobs/' + job + '.zip">' + job + '.zip</a>');
+    };
 
-  prefix.on('message', function(event) {
-    console.log(event);
-    if (event.type == 'end') {
-      res.send('<a href="/jobs/' + event.job + '.zip">' + event.job + '.zip</a>');
+    if (!exists) {
+      var prefix = cp.fork(__dirname + '/prefix.js');
+
+      prefix.on('message', function(event) {
+        // console.log(event);
+        if (event.type == 'end') {
+          ready();
+        }
+        // res.writeHead(200, { 'content-type': 'text/css' });
+        // res.end('');    
+      });
+
+      prefix.send({ type: 'start', url: req.params[0] });
+    } else {
+      ready();
     }
-    // res.writeHead(200, { 'content-type': 'text/css' });
-    // res.end('');    
   });
-
-  prefix.send({ type: 'start', url: req.params[0] });
 });
 
 app.listen(process.env.PORT || 8000);
