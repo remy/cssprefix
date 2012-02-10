@@ -72,6 +72,7 @@ app.get('/check.json', function (req, res) {
 });
 
 app.get(/\/(.*)?/, function (req, res) {
+  console.log(req.headers);
   var prefix = cp.fork(__dirname + '/prefix.js');
 
   prefix.on('message', function(event) {
