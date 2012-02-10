@@ -60,7 +60,7 @@ app.get(/favicon.ico|humans.txt/i, function (req, res) {
 });
 
 app.get('/check.json', function (req, res) {
-  console.log(req.query);
+  var url = Object.keys(req.query)[0];
   var prefix = cp.fork(__dirname + '/prefix.js');
   prefix.on('message', function(event) {
     console.log(event);
@@ -71,11 +71,13 @@ app.get('/check.json', function (req, res) {
     }
   });
 
-  prefix.send({ type: 'start', url: req.query.url, dirtyExit: true });
+  prefix.send({ type: 'start', url: url, dirtyExit: true });
 });
 
-app.get(/\/check\/(.*)?/, function (req, res) {
-  var job = urlAsPath(req.params[0]);
+app.get('/check', function (req, res) {
+  var url = Object.keys(req.query)[0];
+
+  var job = urlAsPath(url);
   path.exists(__dirname + '/public/jobs/' + job + '.zip', function (exists) {
     var ready = function () {
       res.send('<a href="/jobs/' + job + '.zip">' + job + '.zip</a>');
@@ -93,7 +95,7 @@ app.get(/\/check\/(.*)?/, function (req, res) {
         // res.end('');    
       });
 
-      prefix.send({ type: 'start', url: req.params[0] });
+      prefix.send({ type: 'start', url: url });
     } else {
       ready();
     }

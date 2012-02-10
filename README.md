@@ -25,13 +25,13 @@ Plan to build a service for developer to submit a site to that will:
 
 First as a red light/green light app with the ability to download updated CSS. For example:
 
-> http://cssprefix.com/http://remysharp.com
+> http://cssprefix.com/check?http://remysharp.com
 
 This would return a simple page - with an indicator of whether they're not using an fallback CSS properties.
 
 Also available for plugins to use - with the intention that a developer can use a simple plugin (for firebug, chrome extension, etc):
 
-> http://cssprefix.com/check.json?url=http://remysharp.com
+> http://cssprefix.com/check.json?http://remysharp.com
 
 Returns:
 
