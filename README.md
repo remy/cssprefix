@@ -11,7 +11,7 @@ Fork the project, and run:
     npm install
     node prefix.js [url]
 
-This *should* output the CSS with retrofitted vendor-prefixes where they were missing. This was about 3 hours work, so if it's shoddy - I do appologise!
+This *should* output the CSS with retrofitted vendor-prefixes where they were missing. This was about 3 hours work, so if it's shoddy - I do apologise!
 
 # The Plan
 
