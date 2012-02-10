@@ -2,6 +2,7 @@
   "name": "cssprefix",
   "version": "0.0.1",
   "dependencies": {
+    "node-markdown": ">= 0.0.1",
     "connect": ">= 0.0.1",
     "request": ">= 0.0.1",
     "csslint": ">= 0.0.1",

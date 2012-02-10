@@ -19,7 +19,7 @@ var CSSLint = require("csslint").CSSLint,
  * - trigger event back to parent process to notify job is complete
  **/
 
-function Prefix(url) {
+function Prefix(url, complete) {
   var self = this,
       dirty = false;
 
@@ -39,7 +39,8 @@ function Prefix(url) {
       return;
     }
 
-    var html = body.toString();
+    var html = body.toString(),
+        rawcss = '';
 
     // workaround for https://github.com/tmpvar/jsdom/issues/172
     // need to remove empty script tags as it casues jsdom to skip the env callback
@@ -64,16 +65,22 @@ function Prefix(url) {
           if (self.todo <= 0) {
             // console.log('all done');
             self.messages.forEach(function (message) {
-              if (message.rule.id == 'compatible-vendor-prefixes') {
+              if (message.rule.id !== 'compatible-vendor-prefixes') {
                 // console.log(message);
               }
             });
             process.emit('end');
+
+            if (complete) {
+              complete(rawcss);
+            } else {
+              console.log(rawcss);
+            }
           }
         };
         self.lint = function (css) {
           // css = css.replace(/\r/g, '\n');
-          var lint = CSSLint.verify(css, { "compatible-vendor-prefixes": 1 });
+          var lint = CSSLint.verify(css, { 'compatible-vendor-prefixes': 1 }); //, 'gradients': 1 }); //, 'vendor-prefix': 1 });
 
           if (!dirty) {
             lint.messages.forEach(function (message) {
@@ -92,8 +99,12 @@ function Prefix(url) {
         styles.length && styles.each(function (i) {
           // process inner CSS
           var lint = self.lint(this.innerHTML);
-          console.log('/* style:' + i + ' */');
           css = retrofit(this.innerHTML, lint);
+
+          if (css) {
+            rawcss += '/* style:' + i + ' */\n';
+            rawcss += css + '\n\n';            
+          }
           // then process @imports so we can capture individual filename
           // self.getImportCSS(url, style.innerHTML, function (css) {
             
@@ -111,10 +122,11 @@ function Prefix(url) {
             }
 
             var lint = self.lint(css);
-            console.log('/* link[href="' + href + '"] */');
             css = retrofit(css, lint);
-
-            console.log(css);
+            if (css) {
+              rawcss += '/* link[href="' + href + '"] */\n';
+              rawcss += css + '\n\n';              
+            }
 
             self.done();
           });
@@ -122,9 +134,16 @@ function Prefix(url) {
         });
 
         inlinestyles.length && inlinestyles.each(function () {
-          var css = this.nodeName + ' { ' + this.getAttribute('style') + ' } ';
-          var lint = self.lint(css);
+          var style = this.getAttribute('style'),
+              nodeName = this.nodeName, 
+              css = nodeName + ' { ' + style + ' } ',
+              lint = self.lint(css);
+
           css = retrofit(css, lint);
+          if (css) {
+            rawcss += '/* ' + nodeName + '[style="' + style + '"] */\n';
+            rawcss += css + '\n\n';            
+          }
 
           self.done();
         });
@@ -192,10 +211,12 @@ Prefix.prototype.getImportCSS = function (rooturl, css, callback) {
 
 function retrofit(css, lint) {
 
-  var csslines = css.split('\n');
+  var csslines = css.split('\n'),
+      dirty = false;
 
   lint.messages.forEach(function (message) {
     if (message.rule.id == 'compatible-vendor-prefixes') {
+      dirty = true;
       var props = { missing: '', found: '' };
       message.message.replace(/The property \-(.*?) is compatible with \-(.*?)\s/g, function (m, missing, found) {
         if (found.substr(-1) == ',') {
@@ -205,10 +226,8 @@ function retrofit(css, lint) {
         props.found = '-' + found;
       });
 
-      // console.log(message);
-
       // start looking for the matching rule - we know it's in there
-      for (var i = message.line; i < csslines.length; i++) {
+      for (var i = message.line-1; i < csslines.length; i++) {
         var cssPropRE = new RegExp(props.found + '\s*:\s*(.*?)\s*[;}]');
         if (cssPropRE.test(csslines[i])) {
           var css = csslines[i].replace(cssPropRE, function (all, cssvalue) {
@@ -222,10 +241,15 @@ function retrofit(css, lint) {
     }
   });
 
-  return csslines.join('\n');
+  return dirty ? csslines.join('\n') : null;
 }
 
-new Prefix(process.argv[2] || 'http://remysharp.com');
+if (!module.parent) {
+  new Prefix(process.argv[2] || 'http://remysharp.com');
+} else {
+  module.exports = Prefix;
+}
+
 
 
 
