@@ -8,8 +8,16 @@ var CSSLint = require("csslint").CSSLint,
     events = require('events'),
     jsdom = require('jsdom'),
     request = require('request'),
-    exec = require('child_process').exec,
-    send = process.send ? 'send' : 'emit';
+    exec = require('child_process').exec;
+
+if (!process.send) {
+  process.send = function (data) {
+    console.log(data);
+    // var event = data.event;
+    // delete data.event;
+    // process.emit(event, data);
+  }
+}
 
 /**
  * TODO:
@@ -41,7 +49,7 @@ Prefix.prototype.end = function () {
       console.log('exec error: ' + error);
     }
 
-    process[send]({ type: 'end', path: self.dir, job: self.job });
+    process.send({ type: 'end', path: self.dir, job: self.job });
     self.complete && self.complete();
   });
 };
@@ -56,7 +64,7 @@ Prefix.prototype.parseURL = function (url) {
   } catch (e) {}
 
 
-  process[send]({ type: 'message', job: self.job });
+  process.send({ type: 'message', job: self.job });
 
   if (url.indexOf('http') === -1) {
     url = 'http://' + url;
@@ -92,8 +100,6 @@ Prefix.prototype.parseHTML = function (html, url) {
           styles = $('style'),
           inlinestyles = $('[style^=""]');
 
-      // console.log('ok1')
-
       self.messages = [];
       self.todo = links.length + styles.length + inlinestyles.length + 1;
       self.done = function() {
@@ -118,7 +124,7 @@ Prefix.prototype.parseHTML = function (html, url) {
       };
       self.lint = function (css) {
         // css = css.replace(/\r/g, '\n');
-        var lint = CSSLint.verify(css, { 'compatible-vendor-prefixes': 1 }); //, 'gradients': 1 }); //, 'vendor-prefix': 1 });
+        var lint = CSSLint.verify(css, { 'compatible-vendor-prefixes': 1, 'vendor-prefix': 1 }); //, 'gradients': 1 }); //, 'vendor-prefix': 1 });
 
         if (!self.dirty) {
           lint.messages.forEach(function (message) {
@@ -126,7 +132,7 @@ Prefix.prototype.parseHTML = function (html, url) {
               // this tells the parent process to show a fail or success whilst we continue with the processing
               self.dirty = true;
               
-              process[send]({ type: 'dirty', lint: message });
+              process.send({ type: 'dirty' });
               if (self.dirtyExit) {
                 process.exit();
               }
@@ -267,21 +273,26 @@ Prefix.prototype.getImportCSS = function (rooturl, css, callback) {
      init: [Function] } }
 */
 
+var messageRE = {
+  'compatible-vendor-prefixes': new RegExp('The property (.*?) is compatible with (.*?) and should be included', 'g'),
+  'vendor-prefix': new RegExp('Missing standard property \'(.*?)\' to go along with \'(.*?)\'', 'g')
+}
+
 function retrofit(css, lint) {
 
   var csslines = css.split('\n'),
       dirty = false;
 
   lint.messages.forEach(function (message) {
-    if (message.rule.id == 'compatible-vendor-prefixes') {
+    if (message.rule.id == 'compatible-vendor-prefixes' || message.rule.id == 'vendor-prefix') {
       dirty = true;
       var props = { missing: '', found: '' };
-      message.message.replace(/The property \-(.*?) is compatible with \-(.*?)\s/g, function (m, missing, found) {
-        if (found.substr(-1) == ',') {
-          found = found.substring(0, found.length -1);
+      message.message.replace(messageRE[message.rule.id], function (m, missing, found) {
+        if (found.indexOf(',') !== -1) {
+          found = found.substring(0, found.indexOf(','));
         }
-        props.missing = '-' + missing;
-        props.found = '-' + found;
+        props.missing = missing;
+        props.found = found;
       });
 
       // start looking for the matching rule - we know it's in there
@@ -289,13 +300,16 @@ function retrofit(css, lint) {
         var cssPropRE = new RegExp(props.found + '\s*:\s*(.*?)\s*[;}]');
         if (cssPropRE.test(csslines[i])) {
           var css = csslines[i].replace(cssPropRE, function (all, cssvalue) {
-            // console.log('adding ' + props.missing + ' to ' + csslines[i]);
-            return all + props.missing + ':' + cssvalue + ';';
+            // console.log(message.rule.id + ' looking for "' + props.found + '" and adding ' + props.missing);
+            var nl = csslines[i].indexOf('\n') === -1 ? '' : '\n';
+            return props.missing + ':' + cssvalue + '; ' + nl + all;
           });
           csslines[i] = css;
           break;
         }        
       }
+    } else {
+      // console.log(message);
     }
   });
 
@@ -314,6 +328,7 @@ if (!module.parent && process.argv[2]) {
 }
 
 process.on('message', function (data) {
+  console.log(data);
   if (data.type == 'start') {
     var prefix = new Prefix(function () {
       // process.send()
