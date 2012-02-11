@@ -5,10 +5,14 @@
 
 var express = require('express'),
     md = require('node-markdown').Markdown,
-    Prefix = require('./prefix'),
     fs = require('fs'),
     path = require('path'),
-    cp = require('child_process');
+    // cp = require('child_process'),
+    zmq = require('zmq'),
+    sock = zmq.socket('req');
+
+sock.bindSync('tcp://127.0.0.1:3000');
+console.log('Producer bound to port 3000');
 
 path.exists(__dirname + '/jobs', function (exists) {
   if (!exists) {
@@ -61,8 +65,9 @@ app.get(/favicon.ico|humans.txt/i, function (req, res) {
 
 app.get('/check.json', function (req, res) {
   var url = Object.keys(req.query)[0];
-  var prefix = cp.fork(__dirname + '/prefix.js');
-  prefix.on('message', function(event) {
+  
+  sock.once('message', function(event) {
+    event = JSON.parse(event);
     console.log(event);
     if (event.type == 'dirty') {
       res.send({ pass: false, lint: event.lint });
@@ -71,7 +76,7 @@ app.get('/check.json', function (req, res) {
     }
   });
 
-  prefix.send({ type: 'start', url: url, dirtyExit: true });
+  sock.send(JSON.stringify({ type: 'start', url: url, dirtyExit: true }));
 });
 
 app.get('/check', function (req, res) {
@@ -83,19 +88,25 @@ app.get('/check', function (req, res) {
       res.send('<a href="/jobs/' + job + '.zip">' + job + '.zip</a>');
     };
 
-    if (!exists) {
-      var prefix = cp.fork(__dirname + '/prefix.js');
-
-      prefix.on('message', function(event) {
-        // console.log(event);
-        if (event.type == 'end') {
-          ready();
-        }
-        // res.writeHead(200, { 'content-type': 'text/css' });
-        // res.end('');    
+    if (true || !exists) {
+      sock.send(JSON.stringify({ type: 'start', url: url }));
+      sock.once('message', function (data) {
+        console.log(JSON.parse(data));
+        ready();
       });
 
-      prefix.send({ type: 'start', url: url });
+      // var prefix = cp.fork(__dirname + '/prefix.js');
+
+      // prefix.on('message', function(event) {
+      //   // console.log(event);
+      //   if (event.type == 'end') {
+      //     ready();
+      //   }
+      //   // res.writeHead(200, { 'content-type': 'text/css' });
+      //   // res.end('');    
+      // });
+
+      // prefix.send({ type: 'start', url: url });
     } else {
       ready();
     }

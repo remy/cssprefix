@@ -8,16 +8,10 @@ var CSSLint = require("csslint").CSSLint,
     events = require('events'),
     jsdom = require('jsdom'),
     request = require('request'),
-    exec = require('child_process').exec;
+    exec = require('child_process').exec,
+    zmq = require('zmq'),
+    sock = zmq.socket('rep');
 
-if (!process.send) {
-  process.send = function (data) {
-    console.log(data);
-    // var event = data.event;
-    // delete data.event;
-    // process.emit(event, data);
-  }
-}
 
 /**
  * TODO:
@@ -49,7 +43,7 @@ Prefix.prototype.end = function () {
       console.log('exec error: ' + error);
     }
 
-    process.send({ type: 'end', path: self.dir, job: self.job });
+    sock.send(JSON.stringify({ type: 'end', path: self.dir, job: self.job }));
     self.complete && self.complete();
   });
 };
@@ -64,7 +58,7 @@ Prefix.prototype.parseURL = function (url) {
   } catch (e) {}
 
 
-  process.send({ type: 'message', job: self.job });
+  // process.send({ type: 'message', job: self.job });
 
   if (url.indexOf('http') === -1) {
     url = 'http://' + url;
@@ -132,9 +126,9 @@ Prefix.prototype.parseHTML = function (html, url) {
               // this tells the parent process to show a fail or success whilst we continue with the processing
               self.dirty = true;
               
-              process.send({ type: 'dirty', lint: message });
+              sock.send(JSON.stringify({ type: 'dirty', lint: message }));
               if (self.dirtyExit) {
-                process.exit();
+                // process.exit();
               }
             }
           });
@@ -320,28 +314,27 @@ function urlAsPath(url) {
   return url.toLowerCase().replace(/.*?:\/\//, '').replace(/\?/, '-').replace(/\//g, '_');
 }
 
-
 if (!module.parent && process.argv[2]) {
   (new Prefix()).parseURL(process.argv[2]);
-} else {
+} else if (module.parent) {
   module.exports = Prefix;
-}
+} else {
+  sock.connect('tcp://127.0.0.1:3000');
+  console.log('Worker connected to port 3000');
 
-process.on('message', function (data) {
-  console.log(data);
-  if (data.type == 'start') {
+  sock.on('message', function(data) {
+    console.log('work: %s', data);
+    data = JSON.parse(data);
     var prefix = new Prefix(function () {
       // process.send()
       console.log('all done');
+      sock.send(JSON.stringify({ type: 'done ' }));
     });
     prefix.dirtyExit = data.dirtyExit;
 
     console.log('>>' + data.url);
   
     prefix.parseURL(data.url);
-  }
-});
 
-
-
-
+  });
+}
