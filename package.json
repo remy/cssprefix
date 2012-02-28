@@ -3,7 +3,7 @@
   "version": "0.0.1",
   "dependencies": {
     "node-markdown": ">= 0.0.1",
-    "connect": ">= 0.0.1",
+    "connect": "1.8.5",
     "request": ">= 0.0.1",
     "csslint": ">= 0.0.1",
     "jsdom": "0.2.10",
