@@ -325,16 +325,18 @@ if (!module.parent && process.argv[2]) {
   sock.on('message', function(data) {
     console.log('work: %s', data);
     data = JSON.parse(data);
-    var prefix = new Prefix(function () {
-      // process.send()
-      console.log('all done');
+    if (data.url) {
+      var prefix = new Prefix(function () {
+        // process.send()
+        console.log('all done');
+        sock.send(JSON.stringify({ type: 'done ' }));
+      });
+      prefix.dirtyExit = data.dirtyExit;
+
+      console.log('>>' + data.url);
+      prefix.parseURL(data.url);
+    } else {
       sock.send(JSON.stringify({ type: 'done ' }));
-    });
-    prefix.dirtyExit = data.dirtyExit;
-
-    console.log('>>' + data.url);
-  
-    prefix.parseURL(data.url);
-
+    }
   });
 }
