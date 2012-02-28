@@ -9,10 +9,15 @@ var express = require('express'),
     path = require('path'),
     // cp = require('child_process'),
     zmq = require('zmq'),
-    sock = zmq.socket('req');
+    sock = zmq.socket('pair');
 
 sock.bindSync('tcp://127.0.0.1:3000');
 console.log('Producer bound to port 3000');
+
+sock.on('message', function (event) {
+  event = JSON.parse(event);
+  sock.emit('message:'+event.job, event);
+});
 
 path.exists(__dirname + '/jobs', function (exists) {
   if (!exists) {
@@ -65,17 +70,14 @@ app.get(/favicon.ico|humans.txt/i, function (req, res) {
 
 app.get('/check.json', function (req, res) {
   var url = Object.keys(req.query)[0];
-  
-  sock.once('message', function(event) {
-    event = JSON.parse(event);
-    console.log(event);
+  sock.once('message:'+urlAsPath(url), function(event) {
+	console.log(event);
     if (event.type == 'dirty') {
       res.send({ pass: false, lint: event.lint });
     } else if (event.type == 'end') {
       res.send({ pass: true });
     }
   });
-
   sock.send(JSON.stringify({ type: 'start', url: url, dirtyExit: true }));
 });
 
