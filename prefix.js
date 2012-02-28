@@ -10,7 +10,7 @@ var CSSLint = require("csslint").CSSLint,
     request = require('request'),
     exec = require('child_process').exec,
     zmq = require('zmq'),
-    sock = zmq.socket('rep');
+    sock = zmq.socket('pair');
 
 
 /**
@@ -126,7 +126,7 @@ Prefix.prototype.parseHTML = function (html, url) {
               // this tells the parent process to show a fail or success whilst we continue with the processing
               self.dirty = true;
               
-              sock.send(JSON.stringify({ type: 'dirty', lint: message }));
+              sock.send(JSON.stringify({ type: 'dirty', lint: message, job: self.job }));
               if (self.dirtyExit) {
                 // process.exit();
               }
